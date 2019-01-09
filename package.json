@@ -1,0 +1,39 @@
+{
+  "name": "file-slicer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./lib/node/index.js",
+  "module": "./lib/browser/index.js",
+  "scripts": {
+    "start": "node test/index.js",
+    "build": "babel -d lib src",
+    "test:lib": "babel -w -d lib src",
+    "test:client": "webpack -w --entry ./lib/browser/index.js -o ./test/public/bundle.js --mode development --output-library-target window",
+    "test:server": "babel-watch test/index.js",
+    "test": "npm-run-all -p test:*"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-stage-0": "^6.24.1",
+    "babel-watch": "^2.0.8",
+    "connect": "^3.6.6",
+    "npm-run-all": "^4.1.5",
+    "serve-static": "^1.13.2",
+    "webpack": "^4.28.1",
+    "webpack-cli": "^3.2.1"
+  },
+  "dependencies": {
+    "busboy": "^0.2.14",
+    "camelcase-keys": "^5.0.0",
+    "form-data": "^2.3.3",
+    "isomorphic-fetch-improve": "^1.0.0",
+    "js-base64": "^2.5.0",
+    "mkdirp": "^0.5.1",
+    "range-parser": "^1.2.0",
+    "uuid": "^3.3.2"
+  }
+}

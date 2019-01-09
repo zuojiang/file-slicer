@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+    <meta http-equiv="Progma" content="no-cache">
+    <meta http-equiv="Cache-Control" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <script type="text/javascript" src="./bundle.js"></script>
+    <script>
+      function progressHandler(loaded, total) {
+        const progress = document.querySelector('progress')
+        progress.max = total
+        progress.value = loaded
+      }
+    </script>
+  </head>
+  <body>
+    <form enctype="multipart/form-data" action="/upload" method="post">
+      <input type="file" name="chunk" />
+      <input type="submit" value="OK" />
+    </form>
+    <hr />
+    <input type="file" onchange="progressHandler(0,0);postFile('/upload', this.files[0], {onProgress: progressHandler})" />
+    <progress value="0" max='0'></progress>
+  </body>
+</html>
