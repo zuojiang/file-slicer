@@ -1,6 +1,8 @@
 file-slicer
 ===
 
+Thin slice upload.
+
 Installation
 ---
 
@@ -14,14 +16,21 @@ Usage
 server.js
 ```js
 const express = require('express')
-const {middleware} = require('file-slicer')
+const path = require('path')
+const fileSlicer = require('file-slicer')
 
 const app = express()
-app.use('/upload', middleware({
+app.post('/upload', fileSlicer.middleware({
   // tmpDir: '/tmp',
+  // override: false,
+  // busboyConfig: {},
+  // propertyName: 'files',
+  // returnAbsPath ({id, name, tmpDir, req, res}) {
+  //  return path.join(tmpDir, name)
+  // },
 }))
 app.use((req, res) => {
-  res.json(req.file)
+  res.json(req.files)
 })
 app.listen(3000)
 ```
@@ -33,12 +42,13 @@ const {postFile} = require('file-slicer')
 const file = '/Users/xxx/Downloads/xxxx.zip'
 postFile('http://127.0.0.1:3000/upload', file, {
   // chunkSize: 1024 * 1024,
+  // fieldName: 'chunk',
   // headers: {},
   // onProgress (loaded, total) => {
   //   console.log(loaded +'/'+ total)
   // },
 }).then(res => res.json()).then(console.log, console.error)
-  // {name: 'xxxx.zip', path: '/tmp/<uuid>.zip'}
+  // [{name: 'xxxx.zip', path: '/tmp/<uuid>.zip', field: 'chunk'}]
 ```
 
 client.js (in Browser)
@@ -61,7 +71,7 @@ const fetch = require('isomorphic-fetch-improve')
 module.exports = function (url, file) {
   const slicer = new FileSlicer(file, {
     // start: 0,
-    // chunkSize: 1024 * 1024,
+    // chunkSize: 1024 * 1024, // 1MB
   })
 
   return upload()

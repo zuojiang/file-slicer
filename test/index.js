@@ -9,10 +9,16 @@ const app = connect()
 app.use(serveStatic(path.join(__dirname, 'public')))
 app.use('/upload', middleware({
   tmpDir: path.join(__dirname, 'tmp_bak'),
+  // returnAbsPath ({tmpDir, name}) {
+  //   return path.join(tmpDir, name)
+  // },
+  // override: true,
 }))
 app.use((req, res) => {
-  res.setHeader('content-type', 'application/json; charset=utf-8')
-  res.end(JSON.stringify(req.file))
+  res.end(JSON.stringify(req.files))
+})
+app.use((err, req, res, next) => {
+  res.end(JSON.stringify({error: err.message}))
 })
 app.listen(3000, () => {
   const file = process.argv[2] || path.join(__dirname, '../package.json')

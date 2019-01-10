@@ -1,22 +1,23 @@
 {
   "name": "file-slicer",
   "version": "1.0.0",
-  "description": "",
+  "description": "Thin slice upload",
   "main": "./lib/node/index.js",
-  "module": "./lib/browser/index.js",
+  "browser": "./lib/browser/index.js",
   "scripts": {
     "start": "node test/index.js",
     "build": "babel -d lib src",
     "test:lib": "babel -w -d lib src",
-    "test:client": "webpack -w --entry ./lib/browser/index.js -o ./test/public/bundle.js --mode development --output-library-target window",
+    "test:client": "webpack -w --entry ./lib/browser/index.js -o ./test/public/bundle.js --mode development --output-library-target umd",
     "test:server": "babel-watch test/index.js",
     "test": "npm-run-all -p test:*"
   },
-  "author": "",
+  "author": "zuojiang.wang@gmail.com",
   "license": "MIT",
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
+    "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-env": "^1.7.0",
     "babel-preset-stage-0": "^6.24.1",
     "babel-watch": "^2.0.8",
@@ -30,10 +31,31 @@
     "busboy": "^0.2.14",
     "camelcase-keys": "^5.0.0",
     "form-data": "^2.3.3",
-    "isomorphic-fetch-improve": "^1.0.0",
+    "isomorphic-fetch-improve": "^1.0.1",
     "js-base64": "^2.5.0",
-    "mkdirp": "^0.5.1",
+    "mkdirp-promise": "^5.0.1",
     "range-parser": "^1.2.0",
+    "then-fs": "^2.0.0",
     "uuid": "^3.3.2"
-  }
+  },
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zuojiang/file-slicer.git"
+  },
+  "keywords": [
+    "file",
+    "slice",
+    "upload",
+    "thin",
+    "postFile",
+    "FormData"
+  ],
+  "bugs": {
+    "url": "https://github.com/zuojiang/file-slicer/issues"
+  },
+  "homepage": "https://github.com/zuojiang/file-slicer#readme"
 }

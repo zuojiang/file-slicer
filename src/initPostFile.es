@@ -7,6 +7,7 @@ export default function (FileSlicer) {
     chunkSize,
     headers,
     onProgress,
+    fieldName = null,
     ...others
   } = {}) => {
     if (!file) {
@@ -27,7 +28,7 @@ export default function (FileSlicer) {
           range,
         } = slicer.next()
         const formData = new FormData()
-        formData.append('chunk', body)
+        formData.append(fieldName || 'chunk', body)
         return fetch(url, {
           retryMaxCount: 2,
           method: 'POST',
@@ -50,6 +51,16 @@ export default function (FileSlicer) {
             throw new Error(res.statusText)
           }
           return res
+        })
+      } else if (file.size == 0) {
+        const formData = new FormData()
+        formData.append(fieldName || 'file', file)
+        return fetch(url, {
+          retryMaxCount: 0,
+          method: 'POST',
+          ...others,
+          body: formData,
+          headers,
         })
       }
       return Promise.reject(new Error('file error'))
