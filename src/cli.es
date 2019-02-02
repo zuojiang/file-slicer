@@ -37,7 +37,7 @@ yargs.command('server [dir]', 'Startup a file server.', {
   // console.log(argv)
   const {
     user,
-    passowrd,
+    password,
     port,
     dir,
   } = argv
@@ -81,8 +81,13 @@ yargs.command('server [dir]', 'Startup a file server.', {
     default: false,
     type: 'boolean',
   },
-  'skip-error': {
+  'skip-fail': {
     desc: 'To skip the file, when error occurs.',
+    default: false,
+    type: 'boolean',
+  },
+  'error-stack': {
+    desc: 'Print error stack.',
     default: false,
     type: 'boolean',
   },
@@ -100,8 +105,9 @@ yargs.command('server [dir]', 'Startup a file server.', {
     url,
     oneline,
     chunkSize,
-    skipError,
     dryRun,
+    skipFail,
+    errorStack,
   } = argv
 
   const startTime = process.hrtime()
@@ -133,7 +139,10 @@ yargs.command('server [dir]', 'Startup a file server.', {
       uploadedSize += size
     } catch (e) {
       printError(i, length, file, e)
-      if (!skipError) {
+      if (errorStack) {
+        console.error(e.stack || e)
+      }
+      if (!skipFail) {
         break
       }
     }

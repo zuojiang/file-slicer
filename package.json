@@ -5,13 +5,14 @@
   "main": "./lib/node/index.js",
   "browser": "./lib/browser/index.js",
   "scripts": {
-    "start": "node test/index.js",
+    "start": "node test/server.js",
     "build": "npm-run-all build:*",
     "build:lib": "babel -d lib --ignore src/cli.es src",
     "build:cli": "babel -o bin/cli.js src/cli.es",
+    "mocha": "mocha --exit test/index.js",
     "test:lib": "babel -w -d lib --ignore src/cli.es src",
     "test:client": "webpack -w --entry ./lib/browser/index.js -o ./test/public/bundle.js --mode development --output-library-target umd",
-    "test:server": "babel-watch test/index.js",
+    "test:server": "babel-watch test/server.js",
     "test": "npm-run-all -p test:*"
   },
   "bin": {
@@ -26,6 +27,8 @@
     "babel-preset-env": "^1.7.0",
     "babel-preset-stage-0": "^6.24.1",
     "babel-watch": "^2.0.8",
+    "execa": "^1.0.0",
+    "mocha": "^5.2.0",
     "npm-run-all": "^4.1.5",
     "serve-static": "^1.13.2",
     "webpack": "^4.28.1",

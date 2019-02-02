@@ -90,13 +90,13 @@ _yargs2.default.command('server [dir]', 'Startup a file server.', {
   }
 }, function () {
   var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(argv) {
-    var user, passowrd, port, dir, tmpDir, app;
+    var user, password, port, dir, tmpDir, app;
     return _regenerator2.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
             // console.log(argv)
-            user = argv.user, passowrd = argv.passowrd, port = argv.port, dir = argv.dir;
+            user = argv.user, password = argv.password, port = argv.port, dir = argv.dir;
             tmpDir = _path2.default.resolve(dir || '.');
             _context.next = 4;
             return (0, _mkdirpPromise2.default)(tmpDir);
@@ -150,8 +150,13 @@ _yargs2.default.command('server [dir]', 'Startup a file server.', {
     default: false,
     type: 'boolean'
   },
-  'skip-error': {
+  'skip-fail': {
     desc: 'To skip the file, when error occurs.',
+    default: false,
+    type: 'boolean'
+  },
+  'error-stack': {
+    desc: 'Print error stack.',
     default: false,
     type: 'boolean'
   },
@@ -162,14 +167,14 @@ _yargs2.default.command('server [dir]', 'Startup a file server.', {
   }
 }, function () {
   var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(argv) {
-    var _argv$_, action, files, file, dir, url, oneline, chunkSize, skipError, dryRun, startTime, list, uploadedSize, _loop, i, length, _ret, endTime, totalTime, totalSize;
+    var _argv$_, action, files, file, dir, url, oneline, chunkSize, dryRun, skipFail, errorStack, startTime, list, uploadedSize, _loop, i, length, _ret, endTime, totalTime, totalSize;
 
     return _regenerator2.default.wrap(function _callee2$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
           case 0:
             // console.log(argv)
-            _argv$_ = (0, _toArray3.default)(argv._), action = _argv$_[0], files = _argv$_.slice(1), file = argv.file, dir = argv.dir, url = argv.url, oneline = argv.oneline, chunkSize = argv.chunkSize, skipError = argv.skipError, dryRun = argv.dryRun;
+            _argv$_ = (0, _toArray3.default)(argv._), action = _argv$_[0], files = _argv$_.slice(1), file = argv.file, dir = argv.dir, url = argv.url, oneline = argv.oneline, chunkSize = argv.chunkSize, dryRun = argv.dryRun, skipFail = argv.skipFail, errorStack = argv.errorStack;
             startTime = process.hrtime();
 
             files.unshift(file);
@@ -215,7 +220,7 @@ _yargs2.default.command('server [dir]', 'Startup a file server.', {
                     case 10:
 
                       uploadedSize += size;
-                      _context2.next = 18;
+                      _context2.next = 19;
                       break;
 
                     case 13:
@@ -223,21 +228,24 @@ _yargs2.default.command('server [dir]', 'Startup a file server.', {
                       _context2.t0 = _context2['catch'](3);
 
                       printError(i, length, file, _context2.t0);
+                      if (errorStack) {
+                        console.error(_context2.t0.stack || _context2.t0);
+                      }
 
-                      if (skipError) {
-                        _context2.next = 18;
+                      if (skipFail) {
+                        _context2.next = 19;
                         break;
                       }
 
                       return _context2.abrupt('return', 'break');
 
-                    case 18:
+                    case 19:
 
                       if (!oneline) {
                         _logUpdate2.default.done();
                       }
 
-                    case 19:
+                    case 20:
                     case 'end':
                       return _context2.stop();
                   }
