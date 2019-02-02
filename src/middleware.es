@@ -12,19 +12,13 @@ import pkg from '../package'
 const defaultTmpDir = path.join(os.tmpdir(), pkg.name)
 
 async function getFilePath ({id, name, dir, tmpDir, req, res, override}) {
-  if (override) {
-    return path.join(tmpDir, dir || '.', name)
-  } else {
-    if (dir) {
-      return path.join(tmpDir, id, dir, name)
-    } else {
-      if (req.headers.range) {
-        const ext = path.extname(name)
-        return path.join(tmpDir, id + ext)
-      }
-      return path.join(tmpDir, id, name)
-    }
+  if (dir) {
+    return path.join(tmpDir, id, dir, name)
+  } else if (override) {
+    return path.join(tmpDir, name)
   }
+  const ext = path.extname(name)
+  return path.join(tmpDir, id + ext)
 }
 
 async function checkFile (filePath, override) {
