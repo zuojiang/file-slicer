@@ -42,7 +42,7 @@ export default function (FileSlicer) {
         const formData = new FormData()
         formData.append(fieldName || 'chunk', body)
         return fetch(url, {
-          retryMaxCount: 2,
+          retryMaxCount: 0,
           method: 'POST',
           ...others,
           body: formData,
@@ -53,7 +53,7 @@ export default function (FileSlicer) {
             'x-file-name': Base64.encode(slicer.fileName),
             'x-file-size': slicer.fileSize,
             'x-file-dir': fileDir && Base64.encode(fileDir) || '',
-          }
+          },
         }).then(res => {
           const fileError = res.headers.get('x-file-error')
           const fileId = res.headers.get('x-file-id')

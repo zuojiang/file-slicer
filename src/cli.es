@@ -9,7 +9,8 @@ import prettyBytes from 'pretty-bytes'
 import basicAuth from 'basic-auth'
 import tsscmp from 'tsscmp'
 import mkdirp from 'mkdirp-promise'
-import moment from 'moment'
+import pad from 'pad-left'
+import cliColor from 'cli-color'
 
 import {postFile, middleware} from '../lib/node'
 
@@ -33,7 +34,7 @@ yargs.command('server [dir]', 'Startup a file server.', {
     type: 'number',
   },
 }, async argv => {
-  // console.log(argv);
+  // console.log(argv)
   const {
     user,
     passowrd,
@@ -66,126 +67,140 @@ yargs.command('server [dir]', 'Startup a file server.', {
     res.end()
   })
   app.listen(port, () => {
-    console.log(`Listening on ${port}. Working on ${tmpDir}.`);
+    console.log(`Listening on ${port}. Working on ${tmpDir}.`)
   })
 })
 .command('upload url [file|dir]', 'Upload files.', {
-  'oneline': {
-    desc: 'Print in one line.',
-    default: false,
-    type: 'boolean',
-  },
   'chunk-size': {
     desc: 'Set chunk size.',
     default: 1024 * 1024,
     type: 'number',
   },
+  'oneline': {
+    desc: 'Print in one line.',
+    default: false,
+    type: 'boolean',
+  },
+  'skip-error': {
+    desc: 'To skip the file, when error occurs.',
+    default: false,
+    type: 'boolean',
+  },
+  'dry-run': {
+    desc: "Don't actually upload anything.",
+    default: false,
+    type: 'boolean',
+  },
 }, async argv => {
-  // console.log(argv);
+  // console.log(argv)
   const {
     _: [action, ...files],
     file,
     dir,
-    ...options
+    url,
+    oneline,
+    chunkSize,
+    skipError,
+    dryRun,
   } = argv
-  try {
-    const start = process.hrtime()
-    const stat = fs.statSync(path.resolve(dir))
-    let size = 0
-    if (stat.isDirectory() && files.length == 0) {
-      size = await uploadDir(path.resolve(dir), options)
-    } else {
-      files.unshift(file)
-      size = await uploadFiles (files, options)
+
+  const startTime = process.hrtime()
+  files.unshift(file)
+  const list = getFileList(files, cwd)
+  let uploadedSize = 0
+  for (let i=0, {length}=list; i<length; i++) {
+    const { file, rootDir, size } = list[i]
+    let fileId, fileDir
+    if (rootDir) {
+      fileId = Base64.encode(path.basename(rootDir))
+      fileDir = path.dirname(file).replace(rootDir, '') || '.'
     }
-    const end = process.hrtime(start)
-    const totalTime = prettyHrtime(end, {precise:true})
-    const totalSize = prettyBytes(size)
-    logUpdate.done()
-    console.log(`Total time: ${totalTime}; Total size: ${totalSize}.`);
-  } catch (e) {
-    logUpdate.done()
-    console.error(e.message)
-    // yargs.showHelp()
+
+    try {
+      if (dryRun) {
+        print(i, length, 0, 0, file, size)
+      } else {
+        await postFile(url, file, {
+          chunkSize,
+          onProgress: (loaded, total) => {
+            print(i, length, loaded, total, file, size)
+          },
+          fileId,
+          fileDir,
+        })
+      }
+
+      uploadedSize += size
+    } catch (e) {
+      printError(i, length, file, e)
+      if (!skipError) {
+        break
+      }
+    }
+
+    if (!oneline) {
+      logUpdate.done()
+    }
   }
+
+  const endTime = process.hrtime(startTime)
+  const totalTime = cliColor.greenBright(prettyHrtime(endTime, {precise:true}))
+  const totalSize = cliColor.greenBright(prettyBytes(uploadedSize))
+  if (dryRun) {
+    logUpdate(`Total size: ${totalSize}. ${cliColor.redBright('No upload anything!')}`)
+  } else {
+    logUpdate(`Total time: ${totalTime}; Total size: ${totalSize}.`)
+  }
+  logUpdate.done()
+
 })
 .strict(true)
 .locale('en')
 .argv
 
-async function uploadDir (dir, {
-  url,
-  oneline,
-  chunkSize,
-}) {
-  const list = getFiles(dir, [dir])
-  const fileId = Base64.encode(path.basename(dir))
-  let totalSize = 0
-  for (let i=0, {length}=list; i<length; i++) {
-    const file = list[i]
-    const res = await postFile(url, file, {
-      chunkSize,
-      onProgress: (loaded, total, size) => {
-        if (loaded == total) {
-          totalSize += size
-        }
-        print(i, length, loaded, total, file, size)
-      },
-      fileId,
-      fileDir: path.dirname(file).replace(dir, '') || '.',
-    })
-    if (!oneline) {
-      logUpdate.done()
-    }
-    // console.log(await res.text(), res.status);
-  }
-  return totalSize
-}
-
-async function uploadFiles (files, {
-  url,
-  oneline,
-  chunkSize,
-}) {
-  const list = getFiles(cwd, files)
-  let totalSize = 0
-  for (let i=0, {length}=list; i<length; i++) {
-    const file = list[i]
-    const res = await postFile(url, file, {
-      chunkSize,
-      onProgress: (loaded, total, size) => {
-        if (loaded == total) {
-          totalSize += size
-        }
-        print(i, length, loaded, total, file, size)
-      },
-    })
-    if (!oneline) {
-      logUpdate.done()
-    }
-  }
-  return totalSize
-}
-
-function getFiles (dir, files) {
-  const list = []
+function getFileList (files, dir, rootDir = null) {
+  let list = []
   for (let file of files) {
     file = path.resolve(dir, file)
-    const stat = fs.statSync(file)
-    if (stat.isFile()) {
-      list.push(file)
-    } else if (stat.isDirectory()) {
-      list.push(...getFiles(file, fs.readdirSync(file)))
+    try {
+      const stat = fs.statSync(file)
+      if (stat.isFile()) {
+        list.push({
+          file,
+          rootDir,
+          size: stat.size,
+        })
+      } else  if (stat.isDirectory()) {
+        list = list.concat(getFileList(fs.readdirSync(file), file, rootDir || file))
+      }
+    } catch (e) {
+      console.warn(e.message)
+      break
     }
   }
   return list
 }
 
 function print (index, length, loaded, total, file, size) {
-  size = prettyBytes(size)
-  if (loaded == total) {
-    logUpdate(`[${index+1}/${length}] [${size}] ${file}`)
-  } else {
-    logUpdate(`[${index+1}/${length}] [${size}] [${Math.floor(loaded/total*100)}%] ${file}`)
+  const count = pad(index+1, length.toString().length, '0')
+  const list = [
+    `[${count}/${length}]`,
+    cliColor.greenBright(file),
+    cliColor.blackBright(`[${prettyBytes(size)}]`),
+  ]
+  if (loaded != total) {
+    list.push(cliColor.redBright(`[${Math.floor(loaded/total*100)}%]`))
   }
+  logUpdate(list.join(' '))
+}
+
+function printError (index, length, file, error) {
+  const count = pad(index+1, length.toString().length, '0')
+  const list = [
+    `[${count}/${length}]`,
+    cliColor.greenBright(file),
+    cliColor.redBright(`[${error.message || error}]`),
+  ]
+  logUpdate(list.join(' '))
+  logUpdate.done()
 }

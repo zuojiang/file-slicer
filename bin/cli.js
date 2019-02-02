@@ -1,17 +1,9 @@
 #!/usr/bin/env node
 'use strict';
 
-var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
-
-var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
-
 var _getIterator2 = require('babel-runtime/core-js/get-iterator');
 
 var _getIterator3 = _interopRequireDefault(_getIterator2);
-
-var _objectWithoutProperties2 = require('babel-runtime/helpers/objectWithoutProperties');
-
-var _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2);
 
 var _toArray2 = require('babel-runtime/helpers/toArray');
 
@@ -24,168 +16,6 @@ var _regenerator2 = _interopRequireDefault(_regenerator);
 var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
 
 var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-var uploadDir = function () {
-  var _ref3 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee3(dir, _ref4) {
-    var _this = this;
-
-    var url = _ref4.url,
-        oneline = _ref4.oneline,
-        chunkSize = _ref4.chunkSize;
-
-    var list, fileId, totalSize, _loop, i, length;
-
-    return _regenerator2.default.wrap(function _callee3$(_context4) {
-      while (1) {
-        switch (_context4.prev = _context4.next) {
-          case 0:
-            list = getFiles(dir, [dir]);
-            fileId = Base64.encode(_path2.default.basename(dir));
-            totalSize = 0;
-            _loop = /*#__PURE__*/_regenerator2.default.mark(function _loop(i, length) {
-              var file, res;
-              return _regenerator2.default.wrap(function _loop$(_context3) {
-                while (1) {
-                  switch (_context3.prev = _context3.next) {
-                    case 0:
-                      file = list[i];
-                      _context3.next = 3;
-                      return (0, _node.postFile)(url, file, {
-                        chunkSize: chunkSize,
-                        onProgress: function onProgress(loaded, total, size) {
-                          if (loaded == total) {
-                            totalSize += size;
-                          }
-                          print(i, length, loaded, total, file, size);
-                        },
-                        fileId: fileId,
-                        fileDir: _path2.default.dirname(file).replace(dir, '') || '.'
-                      });
-
-                    case 3:
-                      res = _context3.sent;
-
-                      if (!oneline) {
-                        _logUpdate2.default.done();
-                      }
-                      // console.log(await res.text(), res.status);
-
-                    case 5:
-                    case 'end':
-                      return _context3.stop();
-                  }
-                }
-              }, _loop, _this);
-            });
-            i = 0, length = list.length;
-
-          case 5:
-            if (!(i < length)) {
-              _context4.next = 10;
-              break;
-            }
-
-            return _context4.delegateYield(_loop(i, length), 't0', 7);
-
-          case 7:
-            i++;
-            _context4.next = 5;
-            break;
-
-          case 10:
-            return _context4.abrupt('return', totalSize);
-
-          case 11:
-          case 'end':
-            return _context4.stop();
-        }
-      }
-    }, _callee3, this);
-  }));
-
-  return function uploadDir(_x3, _x4) {
-    return _ref3.apply(this, arguments);
-  };
-}();
-
-var uploadFiles = function () {
-  var _ref5 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee4(files, _ref6) {
-    var _this2 = this;
-
-    var url = _ref6.url,
-        oneline = _ref6.oneline,
-        chunkSize = _ref6.chunkSize;
-
-    var list, totalSize, _loop2, i, length;
-
-    return _regenerator2.default.wrap(function _callee4$(_context6) {
-      while (1) {
-        switch (_context6.prev = _context6.next) {
-          case 0:
-            list = getFiles(cwd, files);
-            totalSize = 0;
-            _loop2 = /*#__PURE__*/_regenerator2.default.mark(function _loop2(i, length) {
-              var file, res;
-              return _regenerator2.default.wrap(function _loop2$(_context5) {
-                while (1) {
-                  switch (_context5.prev = _context5.next) {
-                    case 0:
-                      file = list[i];
-                      _context5.next = 3;
-                      return (0, _node.postFile)(url, file, {
-                        chunkSize: chunkSize,
-                        onProgress: function onProgress(loaded, total, size) {
-                          if (loaded == total) {
-                            totalSize += size;
-                          }
-                          print(i, length, loaded, total, file, size);
-                        }
-                      });
-
-                    case 3:
-                      res = _context5.sent;
-
-                      if (!oneline) {
-                        _logUpdate2.default.done();
-                      }
-
-                    case 5:
-                    case 'end':
-                      return _context5.stop();
-                  }
-                }
-              }, _loop2, _this2);
-            });
-            i = 0, length = list.length;
-
-          case 4:
-            if (!(i < length)) {
-              _context6.next = 9;
-              break;
-            }
-
-            return _context6.delegateYield(_loop2(i, length), 't0', 6);
-
-          case 6:
-            i++;
-            _context6.next = 4;
-            break;
-
-          case 9:
-            return _context6.abrupt('return', totalSize);
-
-          case 10:
-          case 'end':
-            return _context6.stop();
-        }
-      }
-    }, _callee4, this);
-  }));
-
-  return function uploadFiles(_x5, _x6) {
-    return _ref5.apply(this, arguments);
-  };
-}();
 
 var _fs = require('fs');
 
@@ -227,9 +57,13 @@ var _mkdirpPromise = require('mkdirp-promise');
 
 var _mkdirpPromise2 = _interopRequireDefault(_mkdirpPromise);
 
-var _moment = require('moment');
+var _padLeft = require('pad-left');
 
-var _moment2 = _interopRequireDefault(_moment);
+var _padLeft2 = _interopRequireDefault(_padLeft);
+
+var _cliColor = require('cli-color');
+
+var _cliColor2 = _interopRequireDefault(_cliColor);
 
 var _node = require('../lib/node');
 
@@ -261,7 +95,7 @@ _yargs2.default.command('server [dir]', 'Startup a file server.', {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            // console.log(argv);
+            // console.log(argv)
             user = argv.user, passowrd = argv.passowrd, port = argv.port, dir = argv.dir;
             tmpDir = _path2.default.resolve(dir || '.');
             _context.next = 4;
@@ -306,76 +140,153 @@ _yargs2.default.command('server [dir]', 'Startup a file server.', {
     return _ref.apply(this, arguments);
   };
 }()).command('upload url [file|dir]', 'Upload files.', {
+  'chunk-size': {
+    desc: 'Set chunk size.',
+    default: 1024 * 1024,
+    type: 'number'
+  },
   'oneline': {
     desc: 'Print in one line.',
     default: false,
     type: 'boolean'
   },
-  'chunk-size': {
-    desc: 'Set chunk size.',
-    default: 1024 * 1024,
-    type: 'number'
+  'skip-error': {
+    desc: 'To skip the file, when error occurs.',
+    default: false,
+    type: 'boolean'
+  },
+  'dry-run': {
+    desc: "Don't actually upload anything.",
+    default: false,
+    type: 'boolean'
   }
 }, function () {
   var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(argv) {
-    var _argv$_, action, files, file, dir, options, start, stat, size, end, totalTime, totalSize;
+    var _argv$_, action, files, file, dir, url, oneline, chunkSize, skipError, dryRun, startTime, list, uploadedSize, _loop, i, length, _ret, endTime, totalTime, totalSize;
 
-    return _regenerator2.default.wrap(function _callee2$(_context2) {
+    return _regenerator2.default.wrap(function _callee2$(_context3) {
       while (1) {
-        switch (_context2.prev = _context2.next) {
+        switch (_context3.prev = _context3.next) {
           case 0:
-            // console.log(argv);
-            _argv$_ = (0, _toArray3.default)(argv._), action = _argv$_[0], files = _argv$_.slice(1), file = argv.file, dir = argv.dir, options = (0, _objectWithoutProperties3.default)(argv, ['_', 'file', 'dir']);
-            _context2.prev = 1;
-            start = process.hrtime();
-            stat = _fs2.default.statSync(_path2.default.resolve(dir));
-            size = 0;
+            // console.log(argv)
+            _argv$_ = (0, _toArray3.default)(argv._), action = _argv$_[0], files = _argv$_.slice(1), file = argv.file, dir = argv.dir, url = argv.url, oneline = argv.oneline, chunkSize = argv.chunkSize, skipError = argv.skipError, dryRun = argv.dryRun;
+            startTime = process.hrtime();
 
-            if (!(stat.isDirectory() && files.length == 0)) {
-              _context2.next = 11;
+            files.unshift(file);
+            list = getFileList(files, cwd);
+            uploadedSize = 0;
+            _loop = /*#__PURE__*/_regenerator2.default.mark(function _loop(i, length) {
+              var _list$i, file, rootDir, size, fileId, fileDir;
+
+              return _regenerator2.default.wrap(function _loop$(_context2) {
+                while (1) {
+                  switch (_context2.prev = _context2.next) {
+                    case 0:
+                      _list$i = list[i], file = _list$i.file, rootDir = _list$i.rootDir, size = _list$i.size;
+                      fileId = void 0, fileDir = void 0;
+
+                      if (rootDir) {
+                        fileId = Base64.encode(_path2.default.basename(rootDir));
+                        fileDir = _path2.default.dirname(file).replace(rootDir, '') || '.';
+                      }
+
+                      _context2.prev = 3;
+
+                      if (!dryRun) {
+                        _context2.next = 8;
+                        break;
+                      }
+
+                      print(i, length, 0, 0, file, size);
+                      _context2.next = 10;
+                      break;
+
+                    case 8:
+                      _context2.next = 10;
+                      return (0, _node.postFile)(url, file, {
+                        chunkSize: chunkSize,
+                        onProgress: function onProgress(loaded, total) {
+                          print(i, length, loaded, total, file, size);
+                        },
+                        fileId: fileId,
+                        fileDir: fileDir
+                      });
+
+                    case 10:
+
+                      uploadedSize += size;
+                      _context2.next = 18;
+                      break;
+
+                    case 13:
+                      _context2.prev = 13;
+                      _context2.t0 = _context2['catch'](3);
+
+                      printError(i, length, file, _context2.t0);
+
+                      if (skipError) {
+                        _context2.next = 18;
+                        break;
+                      }
+
+                      return _context2.abrupt('return', 'break');
+
+                    case 18:
+
+                      if (!oneline) {
+                        _logUpdate2.default.done();
+                      }
+
+                    case 19:
+                    case 'end':
+                      return _context2.stop();
+                  }
+                }
+              }, _loop, undefined, [[3, 13]]);
+            });
+            i = 0, length = list.length;
+
+          case 7:
+            if (!(i < length)) {
+              _context3.next = 15;
               break;
             }
 
-            _context2.next = 8;
-            return uploadDir(_path2.default.resolve(dir), options);
+            return _context3.delegateYield(_loop(i, length), 't0', 9);
 
-          case 8:
-            size = _context2.sent;
-            _context2.next = 15;
+          case 9:
+            _ret = _context3.t0;
+
+            if (!(_ret === 'break')) {
+              _context3.next = 12;
+              break;
+            }
+
+            return _context3.abrupt('break', 15);
+
+          case 12:
+            i++;
+            _context3.next = 7;
             break;
-
-          case 11:
-            files.unshift(file);
-            _context2.next = 14;
-            return uploadFiles(files, options);
-
-          case 14:
-            size = _context2.sent;
 
           case 15:
-            end = process.hrtime(start);
-            totalTime = (0, _prettyHrtime2.default)(end, { precise: true });
-            totalSize = (0, _prettyBytes2.default)(size);
+            endTime = process.hrtime(startTime);
+            totalTime = _cliColor2.default.greenBright((0, _prettyHrtime2.default)(endTime, { precise: true }));
+            totalSize = _cliColor2.default.greenBright((0, _prettyBytes2.default)(uploadedSize));
 
+            if (dryRun) {
+              (0, _logUpdate2.default)('Total size: ' + totalSize + '. ' + _cliColor2.default.redBright('No upload anything!'));
+            } else {
+              (0, _logUpdate2.default)('Total time: ' + totalTime + '; Total size: ' + totalSize + '.');
+            }
             _logUpdate2.default.done();
-            console.log('Total time: ' + totalTime + '; Total size: ' + totalSize + '.');
-            _context2.next = 26;
-            break;
 
-          case 22:
-            _context2.prev = 22;
-            _context2.t0 = _context2['catch'](1);
-
-            _logUpdate2.default.done();
-            console.error(_context2.t0.message);
-            // yargs.showHelp()
-
-          case 26:
+          case 20:
           case 'end':
-            return _context2.stop();
+            return _context3.stop();
         }
       }
-    }, _callee2, undefined, [[1, 22]]);
+    }, _callee2, undefined);
   }));
 
   return function (_x2) {
@@ -383,7 +294,9 @@ _yargs2.default.command('server [dir]', 'Startup a file server.', {
   };
 }()).strict(true).locale('en').argv;
 
-function getFiles(dir, files) {
+function getFileList(files, dir) {
+  var rootDir = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+
   var list = [];
   var _iteratorNormalCompletion = true;
   var _didIteratorError = false;
@@ -391,14 +304,23 @@ function getFiles(dir, files) {
 
   try {
     for (var _iterator = (0, _getIterator3.default)(files), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-      var _file = _step.value;
+      var file = _step.value;
 
-      _file = _path2.default.resolve(dir, _file);
-      var stat = _fs2.default.statSync(_file);
-      if (stat.isFile()) {
-        list.push(_file);
-      } else if (stat.isDirectory()) {
-        list.push.apply(list, (0, _toConsumableArray3.default)(getFiles(_file, _fs2.default.readdirSync(_file))));
+      file = _path2.default.resolve(dir, file);
+      try {
+        var stat = _fs2.default.statSync(file);
+        if (stat.isFile()) {
+          list.push({
+            file: file,
+            rootDir: rootDir,
+            size: stat.size
+          });
+        } else if (stat.isDirectory()) {
+          list = list.concat(getFileList(_fs2.default.readdirSync(file), file, rootDir || file));
+        }
+      } catch (e) {
+        console.warn(e.message);
+        break;
       }
     }
   } catch (err) {
@@ -420,10 +342,17 @@ function getFiles(dir, files) {
 }
 
 function print(index, length, loaded, total, file, size) {
-  size = (0, _prettyBytes2.default)(size);
-  if (loaded == total) {
-    (0, _logUpdate2.default)('[' + (index + 1) + '/' + length + '] [' + size + '] ' + file);
-  } else {
-    (0, _logUpdate2.default)('[' + (index + 1) + '/' + length + '] [' + size + '] [' + Math.floor(loaded / total * 100) + '%] ' + file);
+  var count = (0, _padLeft2.default)(index + 1, length.toString().length, '0');
+  var list = ['[' + count + '/' + length + ']', _cliColor2.default.greenBright(file), _cliColor2.default.blackBright('[' + (0, _prettyBytes2.default)(size) + ']')];
+  if (loaded != total) {
+    list.push(_cliColor2.default.redBright('[' + Math.floor(loaded / total * 100) + '%]'));
   }
+  (0, _logUpdate2.default)(list.join(' '));
+}
+
+function printError(index, length, file, error) {
+  var count = (0, _padLeft2.default)(index + 1, length.toString().length, '0');
+  var list = ['[' + count + '/' + length + ']', _cliColor2.default.greenBright(file), _cliColor2.default.redBright('[' + (error.message || error) + ']')];
+  (0, _logUpdate2.default)(list.join(' '));
+  _logUpdate2.default.done();
 }

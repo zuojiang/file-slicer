@@ -21,7 +21,7 @@ async function getFilePath ({id, name, dir, tmpDir, req, res, override}) {
   return path.join(tmpDir, id + ext)
 }
 
-async function checkFile (filePath, override) {
+async function checkFile (tmpDir, filePath, override) {
   let existed = true
   try {
     await fs.stat(filePath)
@@ -32,7 +32,7 @@ async function checkFile (filePath, override) {
     if (override) {
       await fs.unlink(filePath)
     } else {
-      throw new Error(`${filePath} already exists`)
+      throw new Error(`${filePath.replace(tmpDir, '')} already exists`)
     }
   }
 }
@@ -89,7 +89,7 @@ module.exports = function ({
             end,
           }] = rangeParser(size, range)
           if (start == 0) {
-            await checkFile(filePath, override)
+            await checkFile(tmpDir, filePath, override)
           }
           await mkdirp(path.dirname(filePath))
           const size = parseInt(xFileSize)
@@ -103,7 +103,7 @@ module.exports = function ({
         } else {
           name = filename
           filePath = await returnAbsPath({ req, res, id, name, tmpDir, override })
-          await checkFile(filePath, override)
+          await checkFile(tmpDir, filePath, override)
           await mkdirp(path.dirname(filePath))
           stream = fs.createWriteStream(filePath, {
             flags: 'w',
