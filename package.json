@@ -1,16 +1,21 @@
 {
   "name": "file-slicer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Thin slice upload",
   "main": "./lib/node/index.js",
   "browser": "./lib/browser/index.js",
   "scripts": {
     "start": "node test/index.js",
-    "build": "babel -d lib src",
-    "test:lib": "babel -w -d lib src",
+    "build": "npm-run-all build:*",
+    "build:lib": "babel -d lib --ignore src/cli.es src",
+    "build:cli": "babel -o bin/cli.js src/cli.es",
+    "test:lib": "babel -w -d lib --ignore src/cli.es src",
     "test:client": "webpack -w --entry ./lib/browser/index.js -o ./test/public/bundle.js --mode development --output-library-target umd",
     "test:server": "babel-watch test/index.js",
     "test": "npm-run-all -p test:*"
+  },
+  "bin": {
+    "file-slicer": "bin/cli.js"
   },
   "author": "zuojiang.wang@gmail.com",
   "license": "MIT",
@@ -21,22 +26,29 @@
     "babel-preset-env": "^1.7.0",
     "babel-preset-stage-0": "^6.24.1",
     "babel-watch": "^2.0.8",
-    "connect": "^3.6.6",
     "npm-run-all": "^4.1.5",
     "serve-static": "^1.13.2",
     "webpack": "^4.28.1",
     "webpack-cli": "^3.2.1"
   },
   "dependencies": {
+    "basic-auth": "^2.0.1",
     "busboy": "^0.2.14",
     "camelcase-keys": "^5.0.0",
+    "connect": "^3.6.6",
     "form-data": "^2.3.3",
-    "isomorphic-fetch-improve": "^1.0.1",
+    "isomorphic-fetch-improve": "^1.2.0",
     "js-base64": "^2.5.0",
+    "log-update": "^2.3.0",
     "mkdirp-promise": "^5.0.1",
+    "moment": "^2.24.0",
+    "pretty-bytes": "^5.1.0",
+    "pretty-hrtime": "^1.0.3",
     "range-parser": "^1.2.0",
     "then-fs": "^2.0.0",
-    "uuid": "^3.3.2"
+    "tsscmp": "^1.0.6",
+    "uuid": "^3.3.2",
+    "yargs": "^12.0.5"
   },
   "directories": {
     "lib": "lib",
@@ -52,7 +64,8 @@
     "upload",
     "thin",
     "postFile",
-    "FormData"
+    "FormData",
+    "folder"
   ],
   "bugs": {
     "url": "https://github.com/zuojiang/file-slicer/issues"

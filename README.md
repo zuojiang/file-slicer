@@ -4,8 +4,6 @@ file-slicer
 Thin slice upload.
 
 Installation
----
-
 ```sh
 npm i file-slicer -S
 ```
@@ -25,8 +23,8 @@ app.post('/upload', fileSlicer.middleware({
   // override: false,
   // busboyConfig: {},
   // propertyName: 'files',
-  // returnAbsPath ({id, name, tmpDir, req, res}) {
-  //  return path.join(tmpDir, name)
+  // returnAbsPath ({id, name, tmpDir, dir, override, req, res}) {
+  //  return path.join(tmpDir, dir || '.', name)
   // },
 }))
 app.use((req, res) => {
@@ -44,7 +42,7 @@ postFile('http://127.0.0.1:3000/upload', file, {
   // chunkSize: 1024 * 1024,
   // fieldName: 'chunk',
   // headers: {},
-  // onProgress (loaded, total) => {
+  // onProgress (loaded, total, size) => {
   //   console.log(loaded +'/'+ total)
   // },
 }).then(res => res.json()).then(console.log, console.error)
@@ -98,6 +96,22 @@ module.exports = function (url, file) {
     }
   }
 }
+```
+
+CLI
+---
+
+```sh
+npm i file-slicer -g
+
+# starup a server
+file-slicer server -u admin -p 123 -P 8080 .
+
+# upload a folder (keep folder structure)
+file-slicer upload http://admin:123@localhost:8080 ./dir
+
+# upload files
+file-slicer upload http://admin:123@localhost:8080 ./dir/* ~/hello.js
 ```
 
 License

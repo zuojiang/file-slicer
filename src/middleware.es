@@ -11,12 +11,20 @@ import pkg from '../package'
 
 const defaultTmpDir = path.join(os.tmpdir(), pkg.name)
 
-async function getFilePath ({id, name, tmpDir, req, res}) {
-  if (req.headers.range) {
-    const ext = path.extname(name)
-    return path.join(tmpDir, id + ext)
+async function getFilePath ({id, name, dir, tmpDir, req, res, override}) {
+  if (override) {
+    return path.join(tmpDir, dir || '.', name)
+  } else {
+    if (dir) {
+      return path.join(tmpDir, id, dir, name)
+    } else {
+      if (req.headers.range) {
+        const ext = path.extname(name)
+        return path.join(tmpDir, id + ext)
+      }
+      return path.join(tmpDir, id, name)
+    }
   }
-  return path.join(tmpDir, id, name)
 }
 
 async function checkFile (filePath, override) {
@@ -33,7 +41,6 @@ async function checkFile (filePath, override) {
       throw new Error(`${filePath} already exists`)
     }
   }
-  await mkdirp(path.dirname(filePath))
 }
 
 module.exports = function ({
@@ -45,15 +52,20 @@ module.exports = function ({
 } = {}) {
   return (req, res, next) => {
     const {headers} = req
-    // console.log(headers);
     const {
       xFileId,
       xFileSize,
       xFileName,
+      xFileDir,
       range,
     } = camelcaseKeys(headers)
     const files = []
-    const id = xFileId || uuid()
+    const id = xFileId ? Base64.decode(xFileId) : uuid()
+    const dir = xFileDir ? Base64.decode(xFileDir) : ''
+
+    res.setHeader('X-File-Id', Base64.encode(id))
+    res.setHeader('Accept-Ranges', 'bytes')
+
     let finished = true
 
     const busboy = new Busboy({
@@ -61,7 +73,10 @@ module.exports = function ({
       headers,
     })
     busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
-      run().catch(next)
+      run().catch(err => {
+        res.setHeader('X-File-Error', Base64.encode(err.message))
+        next(err)
+      })
       async function run () {
         let name = null, filePath = null, stream = null
         if (range) {
@@ -74,15 +89,16 @@ module.exports = function ({
             return
           }
           name = Base64.decode(xFileName)
-          filePath = await returnAbsPath({ req, res, id, name, tmpDir })
-          if (!xFileId) {
-            await checkFile(filePath, override)
-          }
-          const size = parseInt(xFileSize)
+          filePath = await returnAbsPath({ req, res, id, name, dir, tmpDir, override })
           const [{
             start,
             end,
           }] = rangeParser(size, range)
+          if (start == 0) {
+            await checkFile(filePath, override)
+          }
+          await mkdirp(path.dirname(filePath))
+          const size = parseInt(xFileSize)
           finished = end + 1 == size
           stream = fs.createWriteStream(filePath, {
             flags: 'a',
@@ -92,8 +108,9 @@ module.exports = function ({
           })
         } else {
           name = filename
-          filePath = await returnAbsPath({ req, res, id, name, tmpDir })
+          filePath = await returnAbsPath({ req, res, id, name, tmpDir, override })
           await checkFile(filePath, override)
+          await mkdirp(path.dirname(filePath))
           stream = fs.createWriteStream(filePath, {
             flags: 'w',
             encoding: 'binary',
@@ -101,6 +118,7 @@ module.exports = function ({
         }
         file.pipe(stream)
         files.push({
+          id,
           name,
           path: filePath,
           field: fieldname,
@@ -112,11 +130,7 @@ module.exports = function ({
         req[propertyName] = files
         next()
       } else {
-        res.writeHead(204, {
-          'X-File-Id': id,
-          'Accept-Ranges': 'bytes',
-          'Content-Type': 'text/plain',
-        })
+        res.writeHead(204)
         res.end()
       }
     })

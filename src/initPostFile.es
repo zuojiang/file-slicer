@@ -8,6 +8,8 @@ export default function (FileSlicer) {
     headers,
     onProgress,
     fieldName = null,
+    fileDir = null,
+    fileId = null,
     ...others
   } = {}) => {
     if (!file) {
@@ -16,10 +18,20 @@ export default function (FileSlicer) {
     const slicer = new FileSlicer(file, {
       chunkSize,
     })
+    return postFile(fileId || '')
 
-    return postFile()
-
-    function postFile (id = '') {
+    function postFile (fileId) {
+      if (slicer.fileSize == 0) {
+        const formData = new FormData()
+        formData.append(fieldName || 'file', file)
+        return fetch(url, {
+          retryMaxCount: 0,
+          method: 'POST',
+          ...others,
+          body: formData,
+          headers,
+        })
+      }
       if (slicer.hasNext()) {
         const {
           body,
@@ -37,33 +49,30 @@ export default function (FileSlicer) {
           headers: {
             ...headers,
             range,
-            'x-file-id': id,
+            'x-file-id': fileId,
             'x-file-name': Base64.encode(slicer.fileName),
             'x-file-size': slicer.fileSize,
+            'x-file-dir': fileDir && Base64.encode(fileDir) || '',
           }
         }).then(res => {
-          onProgress && onProgress(slicer.loaded, slicer.total)
-          const id = res.headers.get('x-file-id')
-          if (id) {
-            if (res.status < 400) {
-              return postFile(id)
+          const fileError = res.headers.get('x-file-error')
+          const fileId = res.headers.get('x-file-id')
+          if (fileError) {
+            throw new Error(Base64.decode(fileError))
+          } else if (fileId) {
+            onProgress && onProgress(slicer.loaded, slicer.total, slicer.fileSize)
+            if (slicer.hasNext()) {
+              return postFile(fileId)
             }
+          } else if (res.status < 400) {
+            throw new Error('The response did not meet expectations! Check your url.')
+          } else {
             throw new Error(res.statusText)
           }
           return res
         })
-      } else if (file.size == 0) {
-        const formData = new FormData()
-        formData.append(fieldName || 'file', file)
-        return fetch(url, {
-          retryMaxCount: 0,
-          method: 'POST',
-          ...others,
-          body: formData,
-          headers,
-        })
       }
-      return Promise.reject(new Error('file error'))
+      throw new Error('Unknown exception')
     }
   }
 

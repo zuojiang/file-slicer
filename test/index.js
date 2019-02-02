@@ -7,6 +7,9 @@ const {postFile} = require('../lib/node/index')
 
 const app = connect()
 app.use(serveStatic(path.join(__dirname, 'public')))
+// app.use((req, res, next) => {
+//   setTimeout(next, 1000)
+// })
 app.use('/upload', middleware({
   tmpDir: path.join(__dirname, 'tmp_bak'),
   // returnAbsPath ({tmpDir, name}) {
