@@ -42,7 +42,8 @@ export default function (FileSlicer) {
         const formData = new FormData()
         formData.append(fieldName || 'chunk', body)
         return fetch(url, {
-          retryMaxCount: 0,
+          retryDelay: 500,
+          retryMaxCount: 120,
           method: 'POST',
           ...others,
           body: formData,

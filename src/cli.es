@@ -12,7 +12,9 @@ import mkdirp from 'mkdirp-promise'
 import pad from 'pad-left'
 import cliColor from 'cli-color'
 
+
 import {postFile, middleware} from '../lib/node'
+import generateFileId from '../lib/generateFileId'
 
 const cwd = process.cwd()
 
@@ -76,6 +78,11 @@ yargs.command('server [dir]', 'Startup a file server.', {
     default: 1024 * 1024,
     type: 'number',
   },
+  'timeout': {
+    desc: 'Set timeout.',
+    default: 1000 * 30,
+    type: 'number',
+  },
   'oneline': {
     desc: 'Print in one line.',
     default: false,
@@ -103,8 +110,9 @@ yargs.command('server [dir]', 'Startup a file server.', {
     file,
     dir,
     url,
-    oneline,
     chunkSize,
+    timeout,
+    oneline,
     dryRun,
     skipFail,
     errorStack,
@@ -113,19 +121,18 @@ yargs.command('server [dir]', 'Startup a file server.', {
   const startTime = process.hrtime()
   files.unshift(file)
   const list = getFileList(files, cwd)
+  const fileId = generateFileId()
   let uploadedSize = 0
+  let successCount = 0
+  let failureCount = 0
   for (let i=0, {length}=list; i<length; i++) {
     const { file, rootDir, size } = list[i]
-    let fileId, fileDir
-    if (rootDir) {
-      fileId = Base64.encode(path.basename(rootDir))
-      fileDir = path.dirname(file).replace(rootDir, '') || '.'
-    }
+    const fileDir = rootDir && path.relative(rootDir, path.dirname(file)) || '.'
+    // console.log({file, rootDir, fileDir});
 
     try {
-      if (dryRun) {
-        print(i, length, 0, 0, file, size)
-      } else {
+      print(i, length, 0, 0, file, size)
+      if (!dryRun) {
         await postFile(url, file, {
           chunkSize,
           onProgress: (loaded, total) => {
@@ -133,12 +140,14 @@ yargs.command('server [dir]', 'Startup a file server.', {
           },
           fileId,
           fileDir,
+          timeout,
         })
       }
-
+      successCount++
       uploadedSize += size
     } catch (e) {
-      printError(i, length, file, e)
+      failureCount++
+      printError(i, length, file, size, e)
       if (errorStack) {
         console.error(e.stack || e)
       }
@@ -158,7 +167,15 @@ yargs.command('server [dir]', 'Startup a file server.', {
   if (dryRun) {
     logUpdate(`Total size: ${totalSize}. ${cliColor.redBright('No upload anything!')}`)
   } else {
-    logUpdate(`Total time: ${totalTime}; Total size: ${totalSize}.`)
+    let countMsg = `Success: ${cliColor.greenBright(successCount)};`
+    if (failureCount > 0) {
+
+    }
+    logUpdate(`Total time: ${totalTime}; Total size: ${totalSize}; Success: ${
+      cliColor[successCount > 0 ? 'greenBright' : 'redBright'](successCount)
+    }; Failure: ${
+      cliColor[failureCount > 0 ? 'redBright' : 'greenBright'](failureCount)
+    }.`)
   }
   logUpdate.done()
 
@@ -176,11 +193,11 @@ function getFileList (files, dir, rootDir = null) {
       if (stat.isFile()) {
         list.push({
           file,
-          rootDir,
+          rootDir: rootDir || path.dirname(file),
           size: stat.size,
         })
       } else  if (stat.isDirectory()) {
-        list = list.concat(getFileList(fs.readdirSync(file), file, rootDir || file))
+        list = list.concat(getFileList(fs.readdirSync(file), file, rootDir || path.dirname(file)))
       }
     } catch (e) {
       console.warn(e.message)
@@ -199,15 +216,18 @@ function print (index, length, loaded, total, file, size) {
   ]
   if (loaded != total) {
     list.push(cliColor.redBright(`[${Math.floor(loaded/total*100)}%]`))
+  } else if (total == 0) {
+    list.push(cliColor.blackBright(`[not started]`))
   }
   logUpdate(list.join(' '))
 }
 
-function printError (index, length, file, error) {
+function printError (index, length, file, size, error) {
   const count = pad(index+1, length.toString().length, '0')
   const list = [
     `[${count}/${length}]`,
     cliColor.greenBright(file),
+    cliColor.blackBright(`[${prettyBytes(size)}]`),
     cliColor.redBright(`[${error.message || error}]`),
   ]
   logUpdate(list.join(' '))
