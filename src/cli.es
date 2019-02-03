@@ -178,7 +178,7 @@ yargs.command('server [dir]', 'Startup a file server.', {
     }.`)
   }
   logUpdate.done()
-
+  process.exit(0)
 })
 .strict(true)
 .locale('en')

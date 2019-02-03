@@ -29,7 +29,7 @@ describe('cli', () => {
     })
 
     it('skip-fail', async () => {
-      const {stdout, stderr} = await execa.shell(`${prefix} upload ${url4} README.md package.json --skip-fail --error-stack`)
+      const {stdout, stderr} = await execa.shell(`${prefix} upload ${url4} README.md package.json --timeout 100 --skip-fail --error-stack`)
       if (!stderr || stdout.indexOf('[2/2]') == -1) {
         throw stdout
       }

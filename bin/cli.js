@@ -298,8 +298,9 @@ _yargs2.default.command('server [dir]', 'Startup a file server.', {
               (0, _logUpdate2.default)('Total time: ' + totalTime + '; Total size: ' + totalSize + '; Success: ' + _cliColor2.default[successCount > 0 ? 'greenBright' : 'redBright'](successCount) + '; Failure: ' + _cliColor2.default[failureCount > 0 ? 'redBright' : 'greenBright'](failureCount) + '.');
             }
             _logUpdate2.default.done();
+            process.exit(0);
 
-          case 23:
+          case 24:
           case 'end':
             return _context3.stop();
         }
