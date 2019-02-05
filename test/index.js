@@ -35,6 +35,13 @@ describe('cli', () => {
       }
     })
 
+    it.skip('skip-test', async () => {
+      const {stdout, stderr} = await execa.shell(`${prefix} upload ${url3} README.md package.json --skip-test --error-stack`)
+      if (!stderr || stdout.indexOf('[2/2]') == -1) {
+        throw stdout
+      }
+    })
+
     it.skip('oneline', async () => {
       const {stdout, stderr} = await execa.shell(`${prefix} upload ${url1} README.md package.json --oneline --error-stack`)
       if (stderr) {

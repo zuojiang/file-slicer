@@ -45,6 +45,7 @@ module.exports = function ({
   returnAbsPath = getFilePath,
   propertyName = 'files',
   override = false,
+  strictPath = true,
   busboyConfig = {},
 } = {}) {
   return (req, res, next) => {
@@ -94,7 +95,7 @@ module.exports = function ({
           name = Base64.decode(xFileName)
           filePath = await returnAbsPath({ req, res, id, name, dir, tmpDir, override })
           filePath = path.normalize(filePath)
-          if (filePath.indexOf(tmpDir) != 0) {
+          if (strictPath && filePath.indexOf(tmpDir) != 0) {
             next(new Error('The path did not meet expectations. Check your file path.'))
             return
           }

@@ -21,6 +21,7 @@ const app = express()
 app.post('/upload', fileSlicer.middleware({
   // tmpDir: '/tmp',
   // override: false,
+  // strictPath: true,
   // busboyConfig: {},
   // propertyName: 'files',
   // returnAbsPath ({id, name, tmpDir, dir, override, req, res}) {
@@ -35,13 +36,16 @@ app.listen(3000)
 
 client.js (in Node.js)
 ```js
-const {postFile} = require('file-slicer')
+const {postFile, generateFileId} = require('file-slicer')
 
 const file = '/Users/xxx/Downloads/xxxx.zip'
 postFile('http://127.0.0.1:3000/upload', file, {
   // chunkSize: 1024 * 1024,
-  // fieldName: 'chunk',
   // headers: {},
+  // skipTest: false,
+  // fieldName: 'chunk',
+  // fileDir: '.',
+  // fileId: generateFileId(), // for batch
   // onProgress (loaded, total, size) => {
   //   console.log(loaded +'/'+ total)
   // },

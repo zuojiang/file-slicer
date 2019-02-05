@@ -93,6 +93,11 @@ yargs.command('server [dir]', 'Startup a file server.', {
     default: false,
     type: 'boolean',
   },
+  'skip-test': {
+    desc: 'To skip test request.',
+    default: false,
+    type: 'boolean',
+  },
   'error-stack': {
     desc: 'Print error stack.',
     default: false,
@@ -115,6 +120,7 @@ yargs.command('server [dir]', 'Startup a file server.', {
     oneline,
     dryRun,
     skipFail,
+    skipTest,
     errorStack,
   } = argv
 
@@ -141,6 +147,7 @@ yargs.command('server [dir]', 'Startup a file server.', {
           fileId,
           fileDir,
           timeout,
+          skipTest,
         })
       }
       successCount++

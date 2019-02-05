@@ -164,6 +164,11 @@ _yargs2.default.command('server [dir]', 'Startup a file server.', {
     default: false,
     type: 'boolean'
   },
+  'skip-test': {
+    desc: 'To skip test request.',
+    default: false,
+    type: 'boolean'
+  },
   'error-stack': {
     desc: 'Print error stack.',
     default: false,
@@ -176,14 +181,14 @@ _yargs2.default.command('server [dir]', 'Startup a file server.', {
   }
 }, function () {
   var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(argv) {
-    var _argv$_, action, files, file, dir, url, chunkSize, timeout, oneline, dryRun, skipFail, errorStack, startTime, list, fileId, uploadedSize, successCount, failureCount, _loop, i, length, _ret, endTime, totalTime, totalSize, countMsg;
+    var _argv$_, action, files, file, dir, url, chunkSize, timeout, oneline, dryRun, skipFail, skipTest, errorStack, startTime, list, fileId, uploadedSize, successCount, failureCount, _loop, i, length, _ret, endTime, totalTime, totalSize, countMsg;
 
     return _regenerator2.default.wrap(function _callee2$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
           case 0:
             // console.log(argv)
-            _argv$_ = (0, _toArray3.default)(argv._), action = _argv$_[0], files = _argv$_.slice(1), file = argv.file, dir = argv.dir, url = argv.url, chunkSize = argv.chunkSize, timeout = argv.timeout, oneline = argv.oneline, dryRun = argv.dryRun, skipFail = argv.skipFail, errorStack = argv.errorStack;
+            _argv$_ = (0, _toArray3.default)(argv._), action = _argv$_[0], files = _argv$_.slice(1), file = argv.file, dir = argv.dir, url = argv.url, chunkSize = argv.chunkSize, timeout = argv.timeout, oneline = argv.oneline, dryRun = argv.dryRun, skipFail = argv.skipFail, skipTest = argv.skipTest, errorStack = argv.errorStack;
             startTime = process.hrtime();
 
             files.unshift(file);
@@ -220,7 +225,8 @@ _yargs2.default.command('server [dir]', 'Startup a file server.', {
                         },
                         fileId: fileId,
                         fileDir: fileDir,
-                        timeout: timeout
+                        timeout: timeout,
+                        skipTest: skipTest
                       });
 
                     case 7:

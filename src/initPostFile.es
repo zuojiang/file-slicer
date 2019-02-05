@@ -5,11 +5,12 @@ import { Base64 } from 'js-base64'
 export default function (FileSlicer) {
   return (url, file, {
     chunkSize,
-    headers,
-    onProgress,
+    headers = {},
+    skipTest = false,
     fieldName = null,
     fileDir = null,
     fileId = null,
+    onProgress = null,
     ...others
   } = {}) => {
     if (!file) {
@@ -47,16 +48,21 @@ export default function (FileSlicer) {
           'x-file-size': slicer.fileSize,
           'x-file-dir': fileDir && Base64.encode(fileDir) || '',
         }
-        return fetch(url, {
-          retryDelay: 100,
-          retryMaxCount: 300,
-          method: 'HEAD',
-          ...others,
-          headers,
-        }).then(res => {
-          if (res.status >= 400) {
-            throw new Error(res.statusText)
-          }
+        let promise = Promise.resolve()
+        if (!skipTest) {
+          promise = promise.then(() => fetch(url, {
+            retryDelay: 100,
+            retryMaxCount: 300,
+            method: 'HEAD',
+            ...others,
+            headers,
+          }).then(res => {
+            if (res.status >= 400) {
+              throw new Error(res.statusText)
+            }
+          }))
+        }
+        return promise.then(() => {
           const formData = new FormData()
           formData.append(fieldName || 'chunk', body)
           return fetch(url, {
@@ -84,7 +90,6 @@ export default function (FileSlicer) {
             return res
           })
         })
-
       }
       throw new Error('Unknown exception')
     }
