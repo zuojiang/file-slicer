@@ -39,39 +39,52 @@ export default function (FileSlicer) {
           end,
           range,
         } = slicer.next()
-        const formData = new FormData()
-        formData.append(fieldName || 'chunk', body)
+        const headers = {
+          ...headers,
+          range,
+          'x-file-id': fileId,
+          'x-file-name': Base64.encode(slicer.fileName),
+          'x-file-size': slicer.fileSize,
+          'x-file-dir': fileDir && Base64.encode(fileDir) || '',
+        }
         return fetch(url, {
-          retryDelay: 500,
-          retryMaxCount: 120,
-          method: 'POST',
+          retryDelay: 100,
+          retryMaxCount: 300,
+          method: 'HEAD',
           ...others,
-          body: formData,
-          headers: {
-            ...headers,
-            range,
-            'x-file-id': fileId,
-            'x-file-name': Base64.encode(slicer.fileName),
-            'x-file-size': slicer.fileSize,
-            'x-file-dir': fileDir && Base64.encode(fileDir) || '',
-          },
+          headers,
         }).then(res => {
-          const fileError = res.headers.get('x-file-error')
-          const fileId = res.headers.get('x-file-id')
-          if (fileError) {
-            throw new Error(Base64.decode(fileError))
-          } else if (fileId) {
-            onProgress && onProgress(slicer.loaded, slicer.total, slicer.fileSize)
-            if (slicer.hasNext()) {
-              return postFile(fileId)
-            }
-          } else if (res.status < 400) {
-            throw new Error('The response did not meet expectations! Check your url.')
-          } else {
+          if (res.status >= 400) {
             throw new Error(res.statusText)
           }
-          return res
+          const formData = new FormData()
+          formData.append(fieldName || 'chunk', body)
+          return fetch(url, {
+            retryDelay: 500,
+            retryMaxCount: 120,
+            method: 'POST',
+            ...others,
+            body: formData,
+            headers,
+          }).then(res => {
+            const fileError = res.headers.get('x-file-error')
+            const fileId = res.headers.get('x-file-id')
+            if (fileError) {
+              throw new Error(Base64.decode(fileError))
+            } else if (fileId) {
+              onProgress && onProgress(slicer.loaded, slicer.total, slicer.fileSize)
+              if (slicer.hasNext()) {
+                return postFile(fileId)
+              }
+            } else if (res.status < 400) {
+              throw new Error('The response did not meet expectations! Check your url.')
+            } else {
+              throw new Error(res.statusText)
+            }
+            return res
+          })
         })
+
       }
       throw new Error('Unknown exception')
     }

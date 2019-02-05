@@ -48,7 +48,12 @@ module.exports = function ({
   busboyConfig = {},
 } = {}) {
   return (req, res, next) => {
-    const {headers} = req
+    const {headers, method} = req
+    if (method != 'POST') {
+      res.writeHead(204)
+      res.end()
+      return
+    }
     const {
       xFileId,
       xFileSize,
