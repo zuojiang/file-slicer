@@ -13,6 +13,7 @@ export default class extends BaseFileSlicer {
       const {
         start,
         end,
+        range,
       } = this
       const body = fs.createReadStream(file, {
         start,
@@ -23,7 +24,7 @@ export default class extends BaseFileSlicer {
         body,
         start,
         end,
-        range: `bytes=${start}-${end}`,
+        range,
       }
     }
   }

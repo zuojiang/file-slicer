@@ -12,15 +12,16 @@ app.use(serveStatic(path.join(__dirname, 'public')))
 // })
 app.use('/upload', middleware({
   tmpDir: path.join(__dirname, 'tmp_bak'),
-  // returnAbsPath ({tmpDir, dir, name}) {
-  //   return path.join(tmpDir, dir, name)
-  // },
-  // override: true,
+  returnAbsPath ({tmpDir, dir, name}) {
+    return path.join(tmpDir, dir, name)
+  },
+  override: true,
 }))
 app.use((req, res) => {
   res.end(JSON.stringify(req.files))
 })
 app.use((err, req, res, next) => {
+  console.error(err)
   res.end(JSON.stringify({error: err.message}))
 })
 app.listen(3000, () => {

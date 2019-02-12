@@ -3,13 +3,12 @@ file-slicer
 
 Thin slice upload.
 
-Installation
+Usage
+---
+
 ```sh
 npm i file-slicer -S
 ```
-
-Usage
----
 
 server.js
 ```js
@@ -18,7 +17,7 @@ const path = require('path')
 const fileSlicer = require('file-slicer')
 
 const app = express()
-app.post('/upload', fileSlicer.middleware({
+app.use('/upload', fileSlicer.middleware({
   // tmpDir: '/tmp',
   // override: false,
   // strictPath: true,
@@ -43,6 +42,7 @@ postFile('http://127.0.0.1:3000/upload', file, {
   // chunkSize: 1024 * 1024,
   // headers: {},
   // skipTest: false,
+  // resumable: false,
   // fieldName: 'chunk',
   // fileDir: '.',
   // fileId: generateFileId(), // for batch
@@ -91,9 +91,14 @@ module.exports = function (url, file) {
           'X-File-Id': id,
           'X-File-Name': Base64.encode(slicer.fileName),
           'X-File-Size': slicer.fileSize,
+          // 'X-File-Dir': Base64.encode('.'),
         }
       }).then(res => {
         // console.log(slicer.loaded +'/'+ slicer.total)
+        const fileError = res.headers.get('x-file-error')
+        if (fileError) {
+          throw new Error(Base64.decode(fileError))
+        }
         const id = res.headers.get('x-file-id')
         return id ? upload(id) : res
       })

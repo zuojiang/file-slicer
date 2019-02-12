@@ -83,6 +83,11 @@ yargs.command('server [dir]', 'Startup a file server.', {
     default: 1000 * 30,
     type: 'number',
   },
+  'resumable': {
+    desc: 'Continue sending a partially-uploaded file.',
+    default: false,
+    type: 'boolean',
+  },
   'oneline': {
     desc: 'Print in one line.',
     default: false,
@@ -121,6 +126,7 @@ yargs.command('server [dir]', 'Startup a file server.', {
     dryRun,
     skipFail,
     skipTest,
+    resumable,
     errorStack,
   } = argv
 
@@ -148,6 +154,7 @@ yargs.command('server [dir]', 'Startup a file server.', {
           fileDir,
           timeout,
           skipTest,
+          resumable,
         })
       }
       successCount++
@@ -175,9 +182,6 @@ yargs.command('server [dir]', 'Startup a file server.', {
     logUpdate(`Total size: ${totalSize}. ${cliColor.redBright('No upload anything!')}`)
   } else {
     let countMsg = `Success: ${cliColor.greenBright(successCount)};`
-    if (failureCount > 0) {
-
-    }
     logUpdate(`Total time: ${totalTime}; Total size: ${totalSize}; Success: ${
       cliColor[successCount > 0 ? 'greenBright' : 'redBright'](successCount)
     }; Failure: ${
@@ -221,7 +225,7 @@ function print (index, length, loaded, total, file, size) {
     cliColor.greenBright(file),
     cliColor.blackBright(`[${prettyBytes(size)}]`),
   ]
-  if (loaded != total) {
+  if (loaded < total) {
     list.push(cliColor.redBright(`[${Math.floor(loaded/total*100)}%]`))
   } else if (total == 0) {
     list.push(cliColor.blackBright(`[not started]`))

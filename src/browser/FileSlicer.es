@@ -10,13 +10,14 @@ export default class extends BaseFileSlicer {
       const {
         start,
         end,
+        range,
       } = this
       const body = file.slice(start, this.start = end + 1, file.type)
       return {
         body,
         start,
         end,
-        range: `bytes=${start}-${end}`,
+        range,
       }
     }
   }

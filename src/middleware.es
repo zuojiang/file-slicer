@@ -11,7 +11,7 @@ import generateFileId from './generateFileId'
 
 const defaultTmpDir = path.join(os.tmpdir(), pkg.name)
 
-async function getFilePath ({id, name, dir, tmpDir, req, res, override}) {
+function getFilePath ({id, name, dir, tmpDir, req, res, override}) {
   // console.log({id, name, dir, override});
   if (override) {
     return path.join(tmpDir, dir, name)
@@ -22,24 +22,6 @@ async function getFilePath ({id, name, dir, tmpDir, req, res, override}) {
   return path.join(tmpDir, id + ext)
 }
 
-async function checkFile (tmpDir, filePath, override, start, size) {
-  let stat = null
-  try {
-    stat = await fs.stat(filePath)
-  } catch (e) {
-  }
-
-  if (stat) {
-    if (isNaN(size) && start == 0 || stat.size == size) {
-      if (override) {
-        await fs.unlink(filePath)
-      } else {
-        throw new Error(`${filePath.replace(tmpDir, '')} already exists`)
-      }
-    }
-  }
-}
-
 module.exports = function ({
   tmpDir = defaultTmpDir,
   returnAbsPath = getFilePath,
@@ -48,13 +30,19 @@ module.exports = function ({
   strictPath = true,
   busboyConfig = {},
 } = {}) {
-  return (req, res, next) => {
-    const {headers, method} = req
-    if (method != 'POST') {
-      res.writeHead(204)
-      res.end()
-      return
+  return (req, res, _next) => {
+    function next (err) {
+      if (err) {
+        res.setHeader('X-File-Error', Base64.encode(err.message))
+        _next(err)
+      } else {
+        _next()
+      }
     }
+
+    res.setHeader('Accept-Ranges', 'bytes')
+
+    const {headers, method} = req
     const {
       xFileId,
       xFileSize,
@@ -62,14 +50,43 @@ module.exports = function ({
       xFileDir,
       range,
     } = camelcaseKeys(headers)
-    const files = []
+
     const id = xFileId ? Base64.decode(xFileId) : generateFileId()
-    const dir = xFileDir ? Base64.decode(xFileDir) : ''
+    res.setHeader('X-File-Id', Base64.encode(id))
+
+    let name = null, filePath = null
+
+    if (range) {
+      if (!xFileName) {
+        next(new Error('No X-File-Name header'))
+        return
+      }
+      if (!xFileSize) {
+        next(new Error('No X-File-Size header'))
+        return
+      }
+      name = Base64.decode(xFileName)
+      const dir = xFileDir ? Base64.decode(xFileDir) : ''
+      filePath = returnAbsPath({ req, res, id, name, dir, tmpDir, override })
+    }
+
+    if (method != 'POST') {
+      let promise = Promise.resolve()
+      if (method == 'HEAD' && filePath) {
+        promise = promise.then(() => fs.stat(filePath).then(stat => {
+          res.setHeader('X-File-End', stat.size)
+        }, err => {}))
+      }
+      promise.then(() => {
+        res.writeHead(204)
+        res.end()
+      })
+      return
+    }
+
     const size = xFileSize ? parseInt(xFileSize) : NaN
 
-    res.setHeader('X-File-Id', Base64.encode(id))
-    res.setHeader('Accept-Ranges', 'bytes')
-
+    const files = []
     let finished = true
 
     const busboy = new Busboy({
@@ -77,33 +94,15 @@ module.exports = function ({
       headers,
     })
     busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
-      run().catch(err => {
-        res.setHeader('X-File-Error', Base64.encode(err.message))
-        next(err)
-      })
+      run().catch(next)
       async function run () {
-        let name = null, filePath = null, stream = null
+        let stream = null
         if (range) {
-          if (!xFileName) {
-            next(new Error('No X-File-Name header'))
-            return
-          }
-          if (!xFileSize) {
-            next(new Error('No X-File-Size header'))
-            return
-          }
-          name = Base64.decode(xFileName)
-          filePath = await returnAbsPath({ req, res, id, name, dir, tmpDir, override })
-          filePath = path.normalize(filePath)
-          if (strictPath && filePath.indexOf(tmpDir) != 0) {
-            next(new Error('The path did not meet expectations. Check your file path.'))
-            return
-          }
           const [{
             start,
             end,
           }] = rangeParser(size, range)
-          await checkFile(tmpDir, filePath, override, start, size)
+          filePath = await checkFile(filePath, start, size)
           await mkdirp(path.dirname(filePath))
           finished = end + 1 == size
           stream = fs.createWriteStream(filePath, {
@@ -114,8 +113,8 @@ module.exports = function ({
           })
         } else {
           name = filename
-          filePath = await returnAbsPath({ req, res, id, name, tmpDir, override })
-          await checkFile(tmpDir, filePath, override, 0, size)
+          filePath = returnAbsPath({ req, res, id, name, dir: '', tmpDir, override })
+          filePath = await checkFile(filePath, 0, size)
           await mkdirp(path.dirname(filePath))
           stream = fs.createWriteStream(filePath, {
             flags: 'w',
@@ -142,4 +141,28 @@ module.exports = function ({
     })
     req.pipe(busboy)
   }
+
+  async function checkFile (filePath, start, size) {
+    filePath = path.normalize(filePath)
+    if (strictPath && filePath.indexOf(tmpDir) != 0) {
+      throw new Error('The path did not meet expectations. Check your file path.')
+    }
+    let stat = null
+    try {
+      stat = await fs.stat(filePath)
+    } catch (e) {
+    }
+
+    if (stat) {
+      if (isNaN(size) && start == 0 || stat.size == size) {
+        if (override) {
+          await fs.unlink(filePath)
+        } else {
+          throw new Error(`${filePath.replace(tmpDir, '')} already exists`)
+        }
+      }
+    }
+    return filePath
+  }
+
 }

@@ -24,9 +24,14 @@ export default class {
     return Math.min(this.start + this.chunkSize, this.fileSize) - 1
   }
 
+  get range () {
+    return `bytes=${this.start}-${this.end}`
+  }
+
   hasNext = () => {
     return this.start < this.fileSize
   }
+
 
   next () {
     return null

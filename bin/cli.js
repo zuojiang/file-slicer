@@ -154,6 +154,11 @@ _yargs2.default.command('server [dir]', 'Startup a file server.', {
     default: 1000 * 30,
     type: 'number'
   },
+  'resumable': {
+    desc: 'Continue sending a partially-uploaded file.',
+    default: false,
+    type: 'boolean'
+  },
   'oneline': {
     desc: 'Print in one line.',
     default: false,
@@ -181,14 +186,14 @@ _yargs2.default.command('server [dir]', 'Startup a file server.', {
   }
 }, function () {
   var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(argv) {
-    var _argv$_, action, files, file, dir, url, chunkSize, timeout, oneline, dryRun, skipFail, skipTest, errorStack, startTime, list, fileId, uploadedSize, successCount, failureCount, _loop, i, length, _ret, endTime, totalTime, totalSize, countMsg;
+    var _argv$_, action, files, file, dir, url, chunkSize, timeout, oneline, dryRun, skipFail, skipTest, resumable, errorStack, startTime, list, fileId, uploadedSize, successCount, failureCount, _loop, i, length, _ret, endTime, totalTime, totalSize, countMsg;
 
     return _regenerator2.default.wrap(function _callee2$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
           case 0:
             // console.log(argv)
-            _argv$_ = (0, _toArray3.default)(argv._), action = _argv$_[0], files = _argv$_.slice(1), file = argv.file, dir = argv.dir, url = argv.url, chunkSize = argv.chunkSize, timeout = argv.timeout, oneline = argv.oneline, dryRun = argv.dryRun, skipFail = argv.skipFail, skipTest = argv.skipTest, errorStack = argv.errorStack;
+            _argv$_ = (0, _toArray3.default)(argv._), action = _argv$_[0], files = _argv$_.slice(1), file = argv.file, dir = argv.dir, url = argv.url, chunkSize = argv.chunkSize, timeout = argv.timeout, oneline = argv.oneline, dryRun = argv.dryRun, skipFail = argv.skipFail, skipTest = argv.skipTest, resumable = argv.resumable, errorStack = argv.errorStack;
             startTime = process.hrtime();
 
             files.unshift(file);
@@ -226,7 +231,8 @@ _yargs2.default.command('server [dir]', 'Startup a file server.', {
                         fileId: fileId,
                         fileDir: fileDir,
                         timeout: timeout,
-                        skipTest: skipTest
+                        skipTest: skipTest,
+                        resumable: resumable
                       });
 
                     case 7:
@@ -300,7 +306,6 @@ _yargs2.default.command('server [dir]', 'Startup a file server.', {
             } else {
               countMsg = 'Success: ' + _cliColor2.default.greenBright(successCount) + ';';
 
-              if (failureCount > 0) {}
               (0, _logUpdate2.default)('Total time: ' + totalTime + '; Total size: ' + totalSize + '; Success: ' + _cliColor2.default[successCount > 0 ? 'greenBright' : 'redBright'](successCount) + '; Failure: ' + _cliColor2.default[failureCount > 0 ? 'redBright' : 'greenBright'](failureCount) + '.');
             }
             _logUpdate2.default.done();
@@ -369,7 +374,7 @@ function getFileList(files, dir) {
 function print(index, length, loaded, total, file, size) {
   var count = (0, _padLeft2.default)(index + 1, length.toString().length, '0');
   var list = ['[' + count + '/' + length + ']', _cliColor2.default.greenBright(file), _cliColor2.default.blackBright('[' + (0, _prettyBytes2.default)(size) + ']')];
-  if (loaded != total) {
+  if (loaded < total) {
     list.push(_cliColor2.default.redBright('[' + Math.floor(loaded / total * 100) + '%]'));
   } else if (total == 0) {
     list.push(_cliColor2.default.blackBright('[not started]'));
