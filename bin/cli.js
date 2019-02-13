@@ -65,6 +65,16 @@ var _cliColor = require('cli-color');
 
 var _cliColor2 = _interopRequireDefault(_cliColor);
 
+var _moment = require('moment');
+
+var _moment2 = _interopRequireDefault(_moment);
+
+var _camelcaseKeys2 = require('camelcase-keys');
+
+var _camelcaseKeys3 = _interopRequireDefault(_camelcaseKeys2);
+
+var _jsBase = require('js-base64');
+
 var _node = require('../lib/node');
 
 var _generateFileId = require('../lib/generateFileId');
@@ -72,6 +82,8 @@ var _generateFileId = require('../lib/generateFileId');
 var _generateFileId2 = _interopRequireDefault(_generateFileId);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_moment2.default.defaultFormat = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
 
 var cwd = process.cwd();
 
@@ -91,16 +103,22 @@ _yargs2.default.command('server [dir]', 'Startup a file server.', {
     desc: 'HTTP port.',
     default: 3000,
     type: 'number'
+  },
+  'verbose': {
+    alias: 'v',
+    desc: 'verbosely list requests.',
+    default: false,
+    type: 'boolean'
   }
 }, function () {
   var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(argv) {
-    var user, password, port, dir, tmpDir, app;
+    var user, password, port, verbose, dir, tmpDir, app;
     return _regenerator2.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
             // console.log(argv)
-            user = argv.user, password = argv.password, port = argv.port, dir = argv.dir;
+            user = argv.user, password = argv.password, port = argv.port, verbose = argv.verbose, dir = argv.dir;
             tmpDir = _path2.default.resolve(dir || '.');
             _context.next = 4;
             return (0, _mkdirpPromise2.default)(tmpDir);
@@ -121,18 +139,42 @@ _yargs2.default.command('server [dir]', 'Startup a file server.', {
                 res.end();
               });
             }
+            if (verbose) {
+              app.use(function (req, res, next) {
+                var method = req.method,
+                    headers = req.headers;
+
+                var msg = '[' + (0, _moment2.default)().format() + ']';
+
+                var _camelcaseKeys = (0, _camelcaseKeys3.default)(headers),
+                    range = _camelcaseKeys.range,
+                    xFileId = _camelcaseKeys.xFileId,
+                    xFileSize = _camelcaseKeys.xFileSize;
+
+                if (range) {
+                  msg += ' ' + _jsBase.Base64.decode(xFileId) + ' ' + range + '/' + xFileSize;
+                }
+                msg += ' ' + method;
+                console.log(msg);
+                next();
+              });
+            }
             app.use((0, _node.middleware)({
               tmpDir: tmpDir,
               override: true
             }));
             app.use(function (req, res) {
               res.end();
+              var file = req.files[0];
+              if (verbose && file) {
+                console.log('[' + (0, _moment2.default)().format() + '] ' + file.id + ' ' + file.path);
+              }
             });
             app.listen(port, function () {
               console.log('Listening on ' + port + '. Working on ' + tmpDir + '.');
             });
 
-          case 9:
+          case 10:
           case 'end':
             return _context.stop();
         }

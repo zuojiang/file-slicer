@@ -22,7 +22,6 @@ export default function (FileSlicer) {
     })
     headers = {
       ...headers,
-      range: slicer.range,
       'x-file-name': Base64.encode(slicer.fileName),
       'x-file-size': slicer.fileSize,
       'x-file-dir': fileDir && Base64.encode(fileDir) || '',
@@ -44,6 +43,7 @@ export default function (FileSlicer) {
       if (slicer.hasNext()) {
         headers = {
           ...headers,
+          range: slicer.range,
           'x-file-id': fileId || '',
         }
         if (skipTest || tested) {

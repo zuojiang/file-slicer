@@ -11,10 +11,15 @@ import tsscmp from 'tsscmp'
 import mkdirp from 'mkdirp-promise'
 import pad from 'pad-left'
 import cliColor from 'cli-color'
+import moment from 'moment'
+import camelcaseKeys from 'camelcase-keys'
+import {Base64} from 'js-base64'
 
 
 import {postFile, middleware} from '../lib/node'
 import generateFileId from '../lib/generateFileId'
+
+moment.defaultFormat = 'YYYY-MM-DDTHH:mm:ss.SSSZ'
 
 const cwd = process.cwd()
 
@@ -35,12 +40,19 @@ yargs.command('server [dir]', 'Startup a file server.', {
     default: 3000,
     type: 'number',
   },
+  'verbose': {
+    alias: 'v',
+    desc: 'verbosely list requests.',
+    default: false,
+    type: 'boolean',
+  }
 }, async argv => {
   // console.log(argv)
   const {
     user,
     password,
     port,
+    verbose,
     dir,
   } = argv
   const tmpDir = path.resolve(dir || '.')
@@ -61,12 +73,33 @@ yargs.command('server [dir]', 'Startup a file server.', {
       res.end()
     })
   }
+  if (verbose) {
+    app.use((req, res, next) => {
+      const {method, headers} = req
+      let msg = `[${moment().format()}]`
+      const {
+        range,
+        xFileId,
+        xFileSize,
+      } = camelcaseKeys(headers)
+      if (range) {
+        msg += ` ${Base64.decode(xFileId)} ${range}/${xFileSize}`
+      }
+      msg += ` ${method}`
+      console.log(msg)
+      next()
+    })
+  }
   app.use(middleware({
     tmpDir,
     override: true,
   }))
   app.use((req, res) => {
     res.end()
+    const file = req.files[0]
+    if (verbose && file) {
+      console.log(`[${moment().format()}] ${file.id} ${file.path}`)
+    }
   })
   app.listen(port, () => {
     console.log(`Listening on ${port}. Working on ${tmpDir}.`)
