@@ -39,7 +39,8 @@ const {postFile, generateFileId} = require('file-slicer')
 
 const file = '/Users/xxx/Downloads/xxxx.zip'
 postFile('http://127.0.0.1:3000/upload', file, {
-  // chunkSize: 1024 * 1024,
+  // chunkSize: 1024 * 1024, // 1MB
+  // stat: null, // only Node.js
   // headers: {},
   // skipTest: false,
   // resumable: false,
@@ -59,7 +60,9 @@ const {postFile} = require('file-slicer')
 
 document.querySelector('input[type=file]').onchange = evt => {
   const file = evt.target.files[0]
-  postFile('http://127.0.0.1:3000/upload', file)
+  postFile('http://127.0.0.1:3000/upload', file, {
+    // as above
+  })
 }
 ```
 
@@ -74,6 +77,7 @@ module.exports = function (url, file) {
   const slicer = new FileSlicer(file, {
     // start: 0,
     // chunkSize: 1024 * 1024, // 1MB
+    // stat: null, // only Node.js
   })
 
   return upload()

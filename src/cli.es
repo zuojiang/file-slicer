@@ -81,9 +81,14 @@ yargs.command('server [dir]', 'Startup a file server.', {
         range,
         xFileId,
         xFileSize,
+        xFileName,
       } = camelcaseKeys(headers)
       if (range) {
-        msg += ` ${Base64.decode(xFileId)} ${range}/${xFileSize}`
+        msg += ` ${
+          Base64.decode(xFileId)
+        } ${range}/${xFileSize} ${
+          Base64.decode(xFileName)
+        }`
       }
       msg += ` ${method}`
       console.log(msg)
@@ -96,9 +101,11 @@ yargs.command('server [dir]', 'Startup a file server.', {
   }))
   app.use((req, res) => {
     res.end()
-    const file = req.files[0]
-    if (verbose && file) {
-      console.log(`[${moment().format()}] ${file.id} ${file.path}`)
+    if (verbose) {
+      const file = req.files[0]
+      if (file) {
+        console.log(`[${moment().format()}] ${file.id} ${file.path}`)
+      }
     }
   })
   app.listen(port, () => {

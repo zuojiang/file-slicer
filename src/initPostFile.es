@@ -12,6 +12,7 @@ export default function (FileSlicer) {
     fileDir = null,
     fileId = null,
     onProgress = null,
+    stat = null,
     ...others
   } = {}) => {
     if (!file) {
@@ -19,6 +20,7 @@ export default function (FileSlicer) {
     }
     const slicer = new FileSlicer(file, {
       chunkSize,
+      stat,
     })
     headers = {
       ...headers,
@@ -101,7 +103,7 @@ export default function (FileSlicer) {
       } else if (res.status < 400) {
         throw new Error('The response did not meet expectations! Check your url.')
       } else {
-        throw new Error(res.statusText)
+        throw new Error(`${res.status} ${res.statusText}`)
       }
       return res
     }

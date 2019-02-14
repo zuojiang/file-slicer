@@ -149,10 +149,11 @@ _yargs2.default.command('server [dir]', 'Startup a file server.', {
                 var _camelcaseKeys = (0, _camelcaseKeys3.default)(headers),
                     range = _camelcaseKeys.range,
                     xFileId = _camelcaseKeys.xFileId,
-                    xFileSize = _camelcaseKeys.xFileSize;
+                    xFileSize = _camelcaseKeys.xFileSize,
+                    xFileName = _camelcaseKeys.xFileName;
 
                 if (range) {
-                  msg += ' ' + _jsBase.Base64.decode(xFileId) + ' ' + range + '/' + xFileSize;
+                  msg += ' ' + _jsBase.Base64.decode(xFileId) + ' ' + range + '/' + xFileSize + ' ' + _jsBase.Base64.decode(xFileName);
                 }
                 msg += ' ' + method;
                 console.log(msg);
@@ -165,9 +166,11 @@ _yargs2.default.command('server [dir]', 'Startup a file server.', {
             }));
             app.use(function (req, res) {
               res.end();
-              var file = req.files[0];
-              if (verbose && file) {
-                console.log('[' + (0, _moment2.default)().format() + '] ' + file.id + ' ' + file.path);
+              if (verbose) {
+                var file = req.files[0];
+                if (file) {
+                  console.log('[' + (0, _moment2.default)().format() + '] ' + file.id + ' ' + file.path);
+                }
               }
             });
             app.listen(port, function () {

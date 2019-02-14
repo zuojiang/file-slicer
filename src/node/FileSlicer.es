@@ -5,7 +5,7 @@ import BaseFileSlicer from '../BaseFileSlicer'
 export default class extends BaseFileSlicer {
   constructor (file, options) {
     super(options)
-    const stat = fs.statSync(file)
+    const stat = options.stat || fs.statSync(file)
     this.fileSize = stat.size
     this.fileName = path.basename(file)
 
