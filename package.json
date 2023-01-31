@@ -1,6 +1,6 @@
 {
   "name": "file-slicer",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "Thin slice upload",
   "main": "./lib/node/index.js",
   "browser": "./lib/browser/index.js",
