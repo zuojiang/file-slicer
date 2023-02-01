@@ -53,9 +53,7 @@ var _tsscmp = require('tsscmp');
 
 var _tsscmp2 = _interopRequireDefault(_tsscmp);
 
-var _mkdirpPromise = require('mkdirp-promise');
-
-var _mkdirpPromise2 = _interopRequireDefault(_mkdirpPromise);
+var _mkdirp = require('mkdirp');
 
 var _padLeft = require('pad-left');
 
@@ -121,7 +119,7 @@ _yargs2.default.command('server [dir]', 'Startup a file server.', {
             user = argv.user, password = argv.password, port = argv.port, verbose = argv.verbose, dir = argv.dir;
             tmpDir = _path2.default.resolve(dir || '.');
             _context.next = 4;
-            return (0, _mkdirpPromise2.default)(tmpDir);
+            return (0, _mkdirp.mkdirp)(tmpDir);
 
           case 4:
             app = (0, _connect2.default)();
